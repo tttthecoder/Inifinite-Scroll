@@ -5,30 +5,36 @@ import { AiOutlineLoading3Quarters } from "react-icons/ai";
 const axiosInstance = axios.create({
   baseURL: "https://pokeapi.co/api/v2",
 });
-const limit = 20;
 type Pokemon = {
   name: string;
   url: string;
 };
-const useInfinitePokemons = () => {
+const useInfinitePokemons = ({ limitForEachFetch = 20 }) => {
   const containerRef = useRef<HTMLUListElement | null>(null);
   const [fetchedPokemons, setFetchedPokemons] = useState<Pokemon[]>([]);
   const [total, setTotal] = useState(0);
+  const [timeOfInitialFetch, setTimeOfInitialFetch] = useState(0);
   const [isFetching, setIsFetching] = useState(false);
   const _internalFetchingStateRef = useRef(false);
   const [error, setError] = useState<null | string>(null);
   useEffect(() => {
+    const hasOverflow =
+      containerRef.current!.clientHeight < containerRef.current!.scrollHeight;
+    if (hasOverflow) {
+      return;
+    }
     setIsFetching(true);
     axiosInstance
       .get("/pokemon", {
-        params: { offset: fetchedPokemons.length, limit: limit },
+        params: { offset: fetchedPokemons.length, limit: 3 },
       })
       .then((res) => {
         const results = res.data.results;
         const count = res.data.count;
-        setFetchedPokemons(results);
+        setFetchedPokemons((prev) => [...prev, ...results]);
         setTotal(count);
         setIsFetching(false);
+        setTimeOfInitialFetch((prev) => 1 + prev);
       })
       .catch((err) => {
         setError(
@@ -37,7 +43,7 @@ const useInfinitePokemons = () => {
         );
         setIsFetching(false);
       });
-  }, []);
+  }, [timeOfInitialFetch]);
   useEffect(() => {
     const handleScroll = (e: any) => {
       const clientHeight = (e.target as HTMLElement).clientHeight;
@@ -54,7 +60,10 @@ const useInfinitePokemons = () => {
         _internalFetchingStateRef.current = true;
         axiosInstance
           .get("/pokemon", {
-            params: { offset: fetchedPokemons.length, limit: limit },
+            params: {
+              offset: fetchedPokemons.length,
+              limit: limitForEachFetch,
+            },
           })
           .then((res) => {
             const results = res.data.results;
@@ -92,7 +101,7 @@ const useInfinitePokemons = () => {
 };
 function PokemonViewer() {
   const { fetchedPokemons, isFetching, containerRef, total, error } =
-    useInfinitePokemons();
+    useInfinitePokemons({ limitForEachFetch: 20 });
   return (
     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px]">
       <p className="w-fit mx-auto text-gray-800 my-2">

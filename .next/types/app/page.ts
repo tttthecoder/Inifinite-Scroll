@@ -1,4 +1,4 @@
-// File: /Users/tintran/Desktop/projects that demonstrate concepts/inifite-scroll/src/app/page.tsx
+// File: /Users/tintran/Desktop/infinite/Inifinite-Scroll/src/app/page.tsx
 import * as entry from '../../../src/app/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 
